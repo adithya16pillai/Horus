@@ -23,7 +23,6 @@ async def manual_scan(
     try:
         logger.info(f"Manual scan requested for {payload.repository} on {payload.branch}")
         
-        # Scan dependencies (wait for result since this is a manual request)
         scan_result = await scan_dependencies(
             repository=payload.repository,
             branch=payload.branch,
@@ -32,14 +31,12 @@ async def manual_scan(
             file_content=payload.file_content
         )
         
-        # If vulnerabilities found, send notification in background
         if scan_result.has_vulnerabilities:
             background_tasks.add_task(
                 send_vulnerability_notification,
                 scan_result
             )
             
-        # Return scan results immediately
         return {
             "repository": scan_result.repository,
             "branch": scan_result.branch,

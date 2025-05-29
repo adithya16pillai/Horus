@@ -10,7 +10,6 @@ from app.core.security import get_api_key
 
 router = APIRouter(tags=["Status"])
 
-# Track service start time
 START_TIME = time.time()
 
 
