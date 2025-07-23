@@ -4,7 +4,7 @@ from loguru import logger
 
 from app.core.config import get_settings
 from app.core.logging import setup_logging
-from app.api.routes import webhook, scan, status
+from app.api.routes import webhook, scan, status, auth_router
 
 
 def create_application() -> FastAPI:
@@ -27,7 +27,7 @@ def create_application() -> FastAPI:
     # Configure CORS
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Restrict in production
+        allow_origins=["*"], 
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -37,6 +37,7 @@ def create_application() -> FastAPI:
     app.include_router(webhook.router, prefix="/api")
     app.include_router(scan.router, prefix="/api")
     app.include_router(status.router, prefix="/api")
+    app.include_router(auth_router, prefix="/api")
     
     # Startup event
     @app.on_event("startup")
@@ -46,11 +47,8 @@ def create_application() -> FastAPI:
     
     return app
 
-
 app = create_application()
 
-
-# Root endpoint for health checks
 @app.get("/")
 async def root():
     settings = get_settings()

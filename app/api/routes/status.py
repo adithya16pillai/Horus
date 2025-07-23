@@ -31,13 +31,8 @@ async def get_status():
 
 @router.get("/status/detailed", summary="Get detailed service status")
 async def get_detailed_status(api_key: str = Depends(get_api_key)):
-    """
-    Get detailed service status information.
-    This endpoint is protected and requires API key authentication.
-    """
     settings = get_settings()
     
-    # Get system information
     memory = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
     

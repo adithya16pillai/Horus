@@ -1,4 +1,5 @@
-from pydantic import BaseSettings, validator
+from pydantic_settings import BaseSettings
+from pydantic import validator
 from typing import List, Optional
 import os
 from enum import Enum
@@ -31,7 +32,6 @@ class Settings(BaseSettings):
     # Notification Configuration
     NOTIFICATION_METHOD: NotificationMethod = NotificationMethod.EMAIL
     
-    # Email Configuration
     SMTP_SERVER: Optional[str] = None
     SMTP_PORT: Optional[int] = None
     SMTP_USERNAME: Optional[str] = None
@@ -39,16 +39,16 @@ class Settings(BaseSettings):
     EMAIL_FROM: Optional[str] = None
     EMAIL_TO: Optional[str] = None
     
+    DATABASE_URL: str = "sqlite:///./horus.db"
+    
     @validator('EMAIL_TO', pre=True)
     def split_email_string(cls, v):
         if isinstance(v, str) and ',' in v:
             return v.split(',')
         return v
     
-    # Slack Configuration
     SLACK_WEBHOOK_URL: Optional[str] = None
     
-    # Discord Configuration
     DISCORD_WEBHOOK_URL: Optional[str] = None
     
     @validator('NOTIFICATION_METHOD')

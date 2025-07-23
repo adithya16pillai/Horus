@@ -12,13 +12,11 @@ from app.core.config import get_settings
 
 @pytest.fixture
 def client():
-    """Create test client"""
     return TestClient(app)
 
 
 @pytest.fixture
 def mock_settings():
-    """Mock settings for testing"""
     settings = MagicMock()
     settings.GITHUB_WEBHOOK_SECRET = "test_secret"
     settings.API_KEY = "test_api_key"
@@ -27,8 +25,9 @@ def mock_settings():
 
 @pytest.fixture
 def sample_push_payload():
-    """Sample GitHub push event payload"""
     return {
+        
+
         "ref": "refs/heads/main",
         "repository": {
             "id": 123456789,
@@ -67,7 +66,6 @@ def sample_push_payload():
 
 @pytest.fixture
 def sample_workflow_payload():
-    """Sample GitHub workflow run event payload"""
     return {
         "workflow_run": {
             "id": 123456789,
@@ -89,7 +87,6 @@ def sample_workflow_payload():
 
 @pytest.fixture
 def sample_dependency_payload():
-    """Sample dependency file payload"""
     return {
         "repository": "username/example-repo",
         "branch": "main",
@@ -100,7 +97,6 @@ def sample_dependency_payload():
 
 
 def create_github_signature(payload: str, secret: str) -> str:
-    """Create GitHub webhook signature"""
     signature = hmac.new(
         secret.encode('utf-8'),
         payload.encode('utf-8'),
@@ -109,11 +105,8 @@ def create_github_signature(payload: str, secret: str) -> str:
     return f"sha256={signature}"
 
 
-class TestWebhookModels:
-    """Test webhook data models"""
-    
+class TestWebhookModels:    
     def test_push_event_model_validation(self, sample_push_payload):
-        """Test PushEventModel validation with valid data"""
         event = PushEventModel(**sample_push_payload)
         
         assert event.ref == "refs/heads/main"
@@ -123,7 +116,6 @@ class TestWebhookModels:
         assert event.pusher["name"] == "username"
     
     def test_workflow_run_model_validation(self, sample_workflow_payload):
-        """Test WorkflowRunModel validation with valid data"""
         event = WorkflowRunModel(**sample_workflow_payload)
         
         assert event.workflow_run["name"] == "Dependency Scan"
@@ -131,7 +123,6 @@ class TestWebhookModels:
         assert event.repository["full_name"] == "username/example-repo"
     
     def test_dependency_file_payload_validation(self, sample_dependency_payload):
-        """Test DependencyFilePayload validation with valid data"""
         payload = DependencyFilePayload(**sample_dependency_payload)
         
         assert payload.repository == "username/example-repo"
@@ -140,12 +131,9 @@ class TestWebhookModels:
         assert "requests==2.28.1" in payload.file_content
 
 
-class TestWebhookSecurity:
-    """Test webhook security and signature verification"""
-    
+class TestWebhookSecurity:    
     @patch('app.core.security.get_settings')
     def test_valid_github_signature(self, mock_get_settings, client, sample_push_payload):
-        """Test webhook with valid GitHub signature"""
         mock_get_settings.return_value.GITHUB_WEBHOOK_SECRET = "test_secret"
         
         payload_str = json.dumps(sample_push_payload)
@@ -169,7 +157,6 @@ class TestWebhookSecurity:
     
     @patch('app.core.security.get_settings')
     def test_invalid_github_signature(self, mock_get_settings, client, sample_push_payload):
-        """Test webhook with invalid GitHub signature"""
         mock_get_settings.return_value.GITHUB_WEBHOOK_SECRET = "test_secret"
         
         payload_str = json.dumps(sample_push_payload)
@@ -189,7 +176,6 @@ class TestWebhookSecurity:
         assert "Invalid signature" in response.json()["detail"]
     
     def test_missing_signature_header(self, client, sample_push_payload):
-        """Test webhook without signature header"""
         payload_str = json.dumps(sample_push_payload)
         
         response = client.post(
@@ -205,13 +191,10 @@ class TestWebhookSecurity:
         assert "X-Hub-Signature-256 header is missing" in response.json()["detail"]
 
 
-class TestWebhookEndpoints:
-    """Test webhook API endpoints"""
-    
+class TestWebhookEndpoints:    
     @patch('app.core.security.get_settings')
     @patch('app.api.routes.webhook.process_github_event')
     def test_github_webhook_push_event(self, mock_process, mock_get_settings, client, sample_push_payload):
-        """Test GitHub webhook with push event"""
         mock_get_settings.return_value.GITHUB_WEBHOOK_SECRET = "test_secret"
         mock_process.return_value = {"status": "processed", "scanned_files": 1}
         
@@ -235,7 +218,6 @@ class TestWebhookEndpoints:
     @patch('app.core.security.get_settings')
     @patch('app.api.routes.webhook.process_github_event')
     def test_github_webhook_workflow_event(self, mock_process, mock_get_settings, client, sample_workflow_payload):
-        """Test GitHub webhook with workflow run event"""
         mock_get_settings.return_value.GITHUB_WEBHOOK_SECRET = "test_secret"
         mock_process.return_value = {"status": "processed"}
         
@@ -258,7 +240,6 @@ class TestWebhookEndpoints:
     
     @patch('app.core.security.get_settings')
     def test_github_webhook_unsupported_event(self, mock_get_settings, client):
-        """Test GitHub webhook with unsupported event type"""
         mock_get_settings.return_value.GITHUB_WEBHOOK_SECRET = "test_secret"
         
         payload = {"action": "opened"}
@@ -281,7 +262,6 @@ class TestWebhookEndpoints:
     @patch('app.core.security.get_api_key')
     @patch('app.services.scanner.osv.scan_dependencies')
     def test_dependency_scan_webhook(self, mock_scan, mock_api_key, client, sample_dependency_payload):
-        """Test dependency scan webhook endpoint"""
         mock_api_key.return_value = "test_api_key"
         
         # Mock scan result
@@ -305,7 +285,6 @@ class TestWebhookEndpoints:
         mock_scan.assert_called_once()
     
     def test_dependency_scan_webhook_unauthorized(self, client, sample_dependency_payload):
-        """Test dependency scan webhook without API key"""
         response = client.post(
             "/api/webhook/scan",
             json=sample_dependency_payload
@@ -314,9 +293,7 @@ class TestWebhookEndpoints:
         assert response.status_code == 401
 
 
-class TestWebhookProcessing:
-    """Test webhook event processing logic"""
-    
+class TestWebhookProcessing:    
     @patch('app.services.github.get_dependency_files')
     @patch('app.services.scanner.osv.scan_dependencies')
     async def test_process_push_event_with_dependency_files(self, mock_scan, mock_get_files):
@@ -366,7 +343,6 @@ class TestWebhookProcessing:
         mock_get_files.assert_called_once()
     
     async def test_process_unsupported_event(self):
-        """Test processing unsupported event type"""
         from app.api.routes.webhook import process_github_event
         
         result = await process_github_event("pull_request", {})
@@ -375,9 +351,7 @@ class TestWebhookProcessing:
         assert "unsupported" in result["message"]
 
 
-class TestWebhookIntegration:
-    """Integration tests for webhook functionality"""
-    
+class TestWebhookIntegration:    
     @patch('app.core.security.get_settings')
     @patch('app.services.github.get_dependency_files')
     @patch('app.services.scanner.osv.scan_dependencies')
@@ -386,7 +360,6 @@ class TestWebhookIntegration:
         self, mock_notify, mock_scan, mock_get_files, mock_get_settings, 
         client, sample_push_payload
     ):
-        """Test complete webhook flow when vulnerabilities are found"""
         mock_get_settings.return_value.GITHUB_WEBHOOK_SECRET = "test_secret"
         
         # Mock dependency files
