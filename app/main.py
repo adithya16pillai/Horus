@@ -11,10 +11,8 @@ def create_application() -> FastAPI:
     """Create and configure the FastAPI application"""
     settings = get_settings()
     
-    # Setup logging first
     setup_logging()
     
-    # Create FastAPI app
     app = FastAPI(
         title=settings.PROJECT_NAME,
         description="API for scanning dependencies for security vulnerabilities",
@@ -24,7 +22,6 @@ def create_application() -> FastAPI:
         openapi_url="/openapi.json" if settings.DEBUG else None,
     )
     
-    # Configure CORS
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"], 
@@ -33,13 +30,11 @@ def create_application() -> FastAPI:
         allow_headers=["*"],
     )
     
-    # Include API routes
     app.include_router(webhook.router, prefix="/api")
     app.include_router(scan.router, prefix="/api")
     app.include_router(status.router, prefix="/api")
     app.include_router(auth_router, prefix="/api")
     
-    # Startup event
     @app.on_event("startup")
     async def startup_event():
         logger.info(f"Starting {settings.PROJECT_NAME} v{settings.VERSION}")
@@ -60,7 +55,6 @@ async def root():
 
 
 if __name__ == "__main__":
-    # Use this for local development
     import uvicorn
     
     uvicorn.run(
