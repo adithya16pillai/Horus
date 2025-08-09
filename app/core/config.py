@@ -14,22 +14,18 @@ class NotificationMethod(str, Enum):
 
 
 class Settings(BaseSettings):
-    # API Configuration
     API_KEY: str
     DEBUG: bool = False
     LOG_LEVEL: str = "INFO"
     PROJECT_NAME: str = "Dependency Scanner"
     VERSION: str = "0.1.0"
     
-    # GitHub API Configuration
     GITHUB_TOKEN: str
     GITHUB_WEBHOOK_SECRET: str
     
-    # Vulnerability Scanner APIs
     OSV_API_URL: str = "https://api.osv.dev/v1"
     GITHUB_GRAPHQL_URL: str = "https://api.github.com/graphql"
     
-    # Notification Configuration
     NOTIFICATION_METHOD: NotificationMethod = NotificationMethod.EMAIL
     
     SMTP_SERVER: Optional[str] = None

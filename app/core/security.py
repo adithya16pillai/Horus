@@ -12,10 +12,9 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 
-# Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-SECRET_KEY = "your-secret-key"  # Change this in production
+SECRET_KEY = "your-secret-key" 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -42,7 +41,6 @@ def decode_access_token(token: str):
     except JWTError:
         return None
 
-# API Key security scheme
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
@@ -84,7 +82,6 @@ async def verify_github_webhook(
             detail="X-Hub-Signature-256 header is missing",
         )
         
-    # The header format is: sha256=<hexdigest>
     if not x_hub_signature_256.startswith("sha256="):
         raise HTTPException(
             status_code=HTTP_403_FORBIDDEN,
@@ -93,7 +90,6 @@ async def verify_github_webhook(
         
     signature = x_hub_signature_256[7:]  # Remove "sha256=" prefix
     
-    # Calculate expected signature
     secret = settings.GITHUB_WEBHOOK_SECRET.encode('utf-8')
     expected_signature = hmac.new(
         key=secret,
@@ -101,7 +97,6 @@ async def verify_github_webhook(
         digestmod=hashlib.sha256
     ).hexdigest()
     
-    # Compare signatures in constant time to prevent timing attacks
     if not secrets.compare_digest(signature, expected_signature):
         raise HTTPException(
             status_code=HTTP_403_FORBIDDEN,
